@@ -1,0 +1,90 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook checkpoints & caches
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# Python local & test caches
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Environment variables & secrets
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.cert
+*.pfx
+
+# Operating System artifacts
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary Excel and Office lock files
+~$*.xlsx
+~$*.xls
+~$*.xlsm
+~$*.csv
+
+# Local runtime scratch scripts & logs
+scratch/
+*.log
+
+# Large data files (>50MB) and archives (safety guard for data analytics)
+*.zip
+*.tar.gz
+*.tar
+*.rar
+*.7z
+*.bak
+*.dump
+*.parquet
+*.sqlite3
+
+# Explicitly ensure repository sample datasets are tracked
+!data/raw/cafe_sales_dirty.csv
+!data/processed/cafe_sales_cleaned.csv
+!data/processed/cafe_sales_analysis.xlsx

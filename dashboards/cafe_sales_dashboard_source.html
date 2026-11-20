@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Cafe Sales Dashboard</title>
+    <style>
+      :root {
+        --bg1: #f6ead8;
+        --bg2: #e6c9a0;
+        --bg3: #c99565;
+        --ink: #2b1a12;
+        --mut: #6b4a37;
+        --glass: rgba(255, 255, 255, 0.38);
+        --edge: rgba(255, 255, 255, 0.75);
+        --ac: #8a4f24;
+        --ac2: #c98a4b;
+        --sh: rgba(60, 30, 10, 0.25);
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg1: #1d110b;
+          --bg2: #3a2216;
+          --bg3: #6a4128;
+          --ink: #f6e8d3;
+          --mut: #c9a98a;
+          --glass: rgba(255, 235, 210, 0.09);
+          --edge: rgba(255, 235, 210, 0.28);
+          --ac: #e3b37a;
+          --sh: rgba(0, 0, 0, 0.5);
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg1: #1d110b;
+        --bg2: #3a2216;
+        --bg3: #6a4128;
+        --ink: #f6e8d3;
+        --mut: #c9a98a;
+        --glass: rgba(255, 235, 210, 0.09);
+        --edge: rgba(255, 235, 210, 0.28);
+        --ac: #e3b37a;
+        --sh: rgba(0, 0, 0, 0.5);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        background: linear-gradient(
+          135deg,
+          var(--bg1),
+          var(--bg2) 55%,
+          var(--bg3)
+        );
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          Arial,
+          sans-serif;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background:
+          radial-gradient(
+            circle at 12% 18%,
+            rgba(201, 138, 75, 0.6),
+            transparent 38%
+          ),
+          radial-gradient(
+            circle at 88% 28%,
+            rgba(120, 70, 40, 0.55),
+            transparent 42%
+          ),
+          radial-gradient(
+            circle at 55% 92%,
+            rgba(240, 200, 150, 0.45),
+            transparent 40%
+          );
+      }
+      .wrap {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px 18px 32px;
+      }
+      .card {
+        position: relative;
+        overflow: hidden;
+        padding: 16px 18px;
+        border-radius: 20px;
+        background: var(--glass);
+        border: 1px solid var(--edge);
+        -webkit-backdrop-filter: blur(22px) saturate(170%);
+        backdrop-filter: blur(22px) saturate(170%);
+        box-shadow:
+          0 10px 34px var(--sh),
+          inset 0 1px 0 rgba(255, 255, 255, 0.55),
+          inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+      }
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(
+          120deg,
+          rgba(255, 255, 255, 0.3),
+          transparent 32%,
+          transparent 68%,
+          rgba(255, 255, 255, 0.12)
+        );
+      }
+      .card > * {
+        position: relative;
+      }
+      h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+      h2 {
+        margin: 0 0 10px;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--mut);
+      }
+      .hd {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+      .hd p {
+        margin: 4px 0 0;
+        color: var(--mut);
+        font-size: 13px;
+      }
+      .dashboard-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .reset-button {
+        border: 1px solid var(--edge);
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--bg1);
+        padding: 7px 12px;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .reset-button:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      .sl {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        font-size: 12px;
+        color: var(--mut);
+      }
+      .sl div {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-right: 10px;
+      }
+      .pill {
+        border: 1px solid var(--edge);
+        background: var(--glass);
+        color: var(--ink);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font: inherit;
+        font-size: 12px;
+        cursor: pointer;
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        transition: 0.2s;
+      }
+      .pill:hover {
+        transform: translateY(-1px);
+      }
+      .pill.on {
+        background: var(--ac2);
+        color: #2b1a12;
+        border-color: transparent;
+        font-weight: 600;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 14px;
+      }
+      .k {
+        grid-column: span 3;
+        min-height: 112px;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+      .k:hover {
+        transform: translateY(-2px);
+        box-shadow:
+          0 14px 38px var(--sh),
+          inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      }
+      .k small {
+        color: var(--mut);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .k b {
+        display: block;
+        font-size: 30px;
+        margin-top: 4px;
+        color: var(--ac);
+        font-variant-numeric: tabular-nums;
+      }
+      .pill:focus-visible,
+      .reset-button:focus-visible {
+        outline: 3px solid var(--ac2);
+        outline-offset: 3px;
+      }
+      .c7 {
+        grid-column: span 7;
+      }
+      .c5 {
+        grid-column: span 5;
+      }
+      .c8 {
+        grid-column: span 8;
+      }
+      .c4 {
+        grid-column: span 4;
+      }
+      .c12 {
+        grid-column: span 12;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 76px 1fr 104px;
+        gap: 10px;
+        align-items: center;
+        margin: 8px 0;
+        font-size: 13px;
+      }
+      .trk {
+        background: rgba(127, 90, 60, 0.16);
+        border-radius: 9px;
+        height: 14px;
+      }
+      .bar {
+        height: 14px;
+        border-radius: 9px;
+        background: linear-gradient(90deg, var(--ac2), var(--ac));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        transition: width 0.5s;
+      }
+      .row span:last-child {
+        text-align: right;
+        color: var(--mut);
+      }
+      .cols {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        height: 190px;
+      }
+      .col {
+        flex: 1;
+        text-align: center;
+        font-size: 12px;
+        color: var(--mut);
+      }
+      .col i {
+        display: block;
+        margin-top: 4px;
+        border-radius: 12px 12px 4px 4px;
+        background: linear-gradient(180deg, var(--ac2), var(--ac));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+        transition: height 0.5s;
+      }
+      svg {
+        max-width: 100%;
+        height: auto;
+      }
+      .lg {
+        display: grid;
+        gap: 6px;
+        font-size: 13px;
+        margin-top: 8px;
+      }
+      .lg span i {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+      .n {
+        font-size: 12px;
+        color: var(--mut);
+        margin: 6px 0 0;
+      }
+      ul {
+        margin: 0;
+        padding-left: 18px;
+        line-height: 1.75;
+        font-size: 14px;
+      }
+      @media (max-width: 820px) {
+        .wrap {
+          padding: 12px 10px 20px;
+        }
+        .hd {
+          align-items: flex-start;
+        }
+        .dashboard-actions {
+          width: 100%;
+          justify-content: space-between;
+        }
+        .sl {
+          flex: 1;
+        }
+        .k {
+          grid-column: span 6;
+        }
+        .c7,
+        .c5,
+        .c8,
+        .c4 {
+          grid-column: span 12;
+        }
+      }
+      @media (max-width: 520px) {
+        h1 {
+          font-size: 21px;
+        }
+        .k {
+          grid-column: span 12;
+          min-height: 96px;
+        }
+        .row {
+          grid-template-columns: 68px 1fr 82px;
+          font-size: 12px;
+        }
+        .card {
+          padding: 14px;
+        }
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        body::before {
+          display: none;
+        }
+        .wrap {
+          max-width: none;
+        }
+        .card {
+          break-inside: avoid;
+          box-shadow: none;
+          background: #fff;
+        }
+        .dashboard-actions {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="card hd">
+        <div>
+          <h1>☕ Cafe Sales Dashboard</h1>
+          <p>
+            2023 · 10,000 transactions cleaned · revenue on 9,977 priced orders
+          </p>
+        </div>
+        <div class="sl">
+          <span>Location</span>
+          <div id="sl"></div>
+          <span>Payment</span>
+          <div id="sp"></div>
+        </div>
+      </header>
+      <section class="grid">
+        <div class="card k"><small>Revenue</small><b id="k1"></b></div>
+        <div class="card k"><small>Orders</small><b id="k2"></b></div>
+        <div class="card k"><small>Avg order value</small><b id="k3"></b></div>
+        <div class="card k"><small>Units sold</small><b id="k4"></b></div>
+        <div class="card c7">
+          <h2>Revenue by item</h2>
+          <div id="items"></div>
+        </div>
+        <div class="card c5">
+          <h2>Revenue by payment method</h2>
+          <div id="don"></div>
+        </div>
+        <div class="card c8">
+          <h2>Monthly revenue (axis starts at $0)</h2>
+          <div id="mon"></div>
+          <p class="n" id="und"></p>
+        </div>
+        <div class="card c4">
+          <h2>Revenue by units per order</h2>
+          <div id="qty"></div>
+        </div>
+        <div class="card c12">
+          <h2>Key insights</h2>
+          <ul>
+            <li>
+              Salad leads with 21% of revenue, while Coffee has the most orders
+              yet only 9% of revenue: price drives revenue, not popularity.
+            </li>
+            <li>
+              Units per item are almost equal (3.3K to 3.9K) across prices from
+              $1 to $5, so Cookie, Tea and Coffee may be under-priced (test
+              before acting).
+            </li>
+            <li>
+              Orders of 4 to 5 units bring 61% of revenue, which makes multi-buy
+              bundles worth testing.
+            </li>
+            <li>
+              Months, weekdays, payment methods and locations are flat; order
+              values do not differ significantly.
+            </li>
+            <li>
+              Data gaps are the biggest issue: 32% of transactions lack a
+              payment method, 40% lack a location and 4.6% lack a date.
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+    <script>
+      const D = {
+          item: [
+            ["Cake", "Cash", "In-store", 83, 242, 726.0],
+            ["Cake", "Cash", "Takeaway", 83, 260, 780.0],
+            ["Cake", "Cash", "Unknown", 110, 337, 1011.0],
+            ["Cake", "Credit Card", "In-store", 61, 194, 582.0],
+            ["Cake", "Credit Card", "Takeaway", 86, 276, 828.0],
+            ["Cake", "Credit Card", "Unknown", 105, 325, 975.0],
+            ["Cake", "Digital Wallet", "In-store", 76, 243, 729.0],
+            ["Cake", "Digital Wallet", "Takeaway", 70, 199, 597.0],
+            ["Cake", "Digital Wallet", "Unknown", 100, 318, 954.0],
+            ["Cake", "Unknown", "In-store", 101, 312, 936.0],
+            ["Cake", "Unknown", "Takeaway", 104, 313, 939.0],
+            ["Cake", "Unknown", "Unknown", 159, 449, 1347.0],
+            ["Coffee", "Cash", "In-store", 75, 226, 452.0],
+            ["Coffee", "Cash", "Takeaway", 90, 282, 564.0],
+            ["Coffee", "Cash", "Unknown", 100, 311, 622.0],
+            ["Coffee", "Credit Card", "In-store", 78, 228, 456.0],
+            ["Coffee", "Credit Card", "Takeaway", 80, 252, 504.0],
+            ["Coffee", "Credit Card", "Unknown", 117, 331, 662.0],
+            ["Coffee", "Digital Wallet", "In-store", 74, 221, 442.0],
+            ["Coffee", "Digital Wallet", "Takeaway", 104, 316, 632.0],
+            ["Coffee", "Digital Wallet", "Unknown", 115, 342, 684.0],
+            ["Coffee", "Unknown", "In-store", 125, 403, 806.0],
+            ["Coffee", "Unknown", "Takeaway", 121, 365, 730.0],
+            ["Coffee", "Unknown", "Unknown", 207, 627, 1254.0],
+            ["Cookie", "Cash", "In-store", 77, 245, 245.0],
+            ["Cookie", "Cash", "Takeaway", 91, 274, 274.0],
+            ["Cookie", "Cash", "Unknown", 106, 312, 312.0],
+            ["Cookie", "Credit Card", "In-store", 106, 295, 295.0],
+            ["Cookie", "Credit Card", "Takeaway", 80, 238, 238.0],
+            ["Cookie", "Credit Card", "Unknown", 92, 276, 276.0],
+            ["Cookie", "Digital Wallet", "In-store", 77, 212, 212.0],
+            ["Cookie", "Digital Wallet", "Takeaway", 109, 330, 330.0],
+            ["Cookie", "Digital Wallet", "Unknown", 104, 305, 305.0],
+            ["Cookie", "Unknown", "In-store", 111, 338, 338.0],
+            ["Cookie", "Unknown", "Takeaway", 122, 377, 377.0],
+            ["Cookie", "Unknown", "Unknown", 136, 396, 396.0],
+            ["Juice", "Cash", "In-store", 87, 242, 726.0],
+            ["Juice", "Cash", "Takeaway", 78, 233, 699.0],
+            ["Juice", "Cash", "Unknown", 100, 288, 864.0],
+            ["Juice", "Credit Card", "In-store", 77, 232, 696.0],
+            ["Juice", "Credit Card", "Takeaway", 74, 192, 576.0],
+            ["Juice", "Credit Card", "Unknown", 125, 402, 1206.0],
+            ["Juice", "Digital Wallet", "In-store", 92, 290, 870.0],
+            ["Juice", "Digital Wallet", "Takeaway", 89, 266, 798.0],
+            ["Juice", "Digital Wallet", "Unknown", 103, 287, 861.0],
+            ["Juice", "Unknown", "In-store", 105, 339, 1017.0],
+            ["Juice", "Unknown", "Takeaway", 98, 301, 903.0],
+            ["Juice", "Unknown", "Unknown", 140, 433, 1299.0],
+            ["Salad", "Cash", "In-store", 110, 315, 1575.0],
+            ["Salad", "Cash", "Takeaway", 81, 238, 1190.0],
+            ["Salad", "Cash", "Unknown", 125, 390, 1950.0],
+            ["Salad", "Credit Card", "In-store", 103, 314, 1570.0],
+            ["Salad", "Credit Card", "Takeaway", 87, 267, 1335.0],
+            ["Salad", "Credit Card", "Unknown", 116, 338, 1690.0],
+            ["Salad", "Digital Wallet", "In-store", 87, 289, 1445.0],
+            ["Salad", "Digital Wallet", "Takeaway", 84, 237, 1185.0],
+            ["Salad", "Digital Wallet", "Unknown", 103, 321, 1605.0],
+            ["Salad", "Unknown", "In-store", 104, 309, 1545.0],
+            ["Salad", "Unknown", "Takeaway", 126, 371, 1855.0],
+            ["Salad", "Unknown", "Unknown", 144, 430, 2150.0],
+            ["Sandwich", "Cash", "In-store", 81, 275, 1100.0],
+            ["Sandwich", "Cash", "Takeaway", 83, 247, 988.0],
+            ["Sandwich", "Cash", "Unknown", 88, 264, 1056.0],
+            ["Sandwich", "Credit Card", "In-store", 76, 228, 912.0],
+            ["Sandwich", "Credit Card", "Takeaway", 71, 216, 864.0],
+            ["Sandwich", "Credit Card", "Unknown", 108, 317, 1268.0],
+            ["Sandwich", "Digital Wallet", "In-store", 88, 282, 1128.0],
+            ["Sandwich", "Digital Wallet", "Takeaway", 86, 263, 1052.0],
+            ["Sandwich", "Digital Wallet", "Unknown", 81, 251, 1004.0],
+            ["Sandwich", "Unknown", "In-store", 123, 342, 1368.0],
+            ["Sandwich", "Unknown", "Takeaway", 103, 328, 1312.0],
+            ["Sandwich", "Unknown", "Unknown", 139, 416, 1664.0],
+            ["Smoothie", "Cash", "In-store", 70, 201, 804.0],
+            ["Smoothie", "Cash", "Takeaway", 52, 179, 716.0],
+            ["Smoothie", "Cash", "Unknown", 113, 366, 1464.0],
+            ["Smoothie", "Credit Card", "In-store", 64, 184, 736.0],
+            ["Smoothie", "Credit Card", "Takeaway", 75, 223, 892.0],
+            ["Smoothie", "Credit Card", "Unknown", 113, 362, 1448.0],
+            ["Smoothie", "Digital Wallet", "In-store", 76, 242, 968.0],
+            ["Smoothie", "Digital Wallet", "Takeaway", 75, 225, 900.0],
+            ["Smoothie", "Digital Wallet", "Unknown", 103, 310, 1240.0],
+            ["Smoothie", "Unknown", "In-store", 111, 326, 1304.0],
+            ["Smoothie", "Unknown", "Takeaway", 101, 295, 1180.0],
+            ["Smoothie", "Unknown", "Unknown", 141, 423, 1692.0],
+            ["Tea", "Cash", "In-store", 78, 228, 342.0],
+            ["Tea", "Cash", "Takeaway", 74, 240, 360.0],
+            ["Tea", "Cash", "Unknown", 112, 323, 484.5],
+            ["Tea", "Credit Card", "In-store", 83, 278, 417.0],
+            ["Tea", "Credit Card", "Takeaway", 87, 254, 381.0],
+            ["Tea", "Credit Card", "Unknown", 91, 286, 429.0],
+            ["Tea", "Digital Wallet", "In-store", 89, 271, 406.5],
+            ["Tea", "Digital Wallet", "Takeaway", 86, 249, 373.5],
+            ["Tea", "Digital Wallet", "Unknown", 103, 318, 477.0],
+            ["Tea", "Unknown", "In-store", 118, 359, 538.5],
+            ["Tea", "Unknown", "Takeaway", 121, 362, 543.0],
+            ["Tea", "Unknown", "Unknown", 164, 482, 723.0],
+            ["Unknown", "Cash", "In-store", 39, 127, 418.0],
+            ["Unknown", "Cash", "Takeaway", 31, 96, 330.0],
+            ["Unknown", "Cash", "Unknown", 37, 100, 350.0],
+            ["Unknown", "Credit Card", "In-store", 31, 98, 345.0],
+            ["Unknown", "Credit Card", "Takeaway", 29, 87, 303.0],
+            ["Unknown", "Credit Card", "Unknown", 54, 153, 582.0],
+            ["Unknown", "Digital Wallet", "In-store", 34, 100, 352.0],
+            ["Unknown", "Digital Wallet", "Takeaway", 38, 119, 424.0],
+            ["Unknown", "Digital Wallet", "Unknown", 39, 127, 440.0],
+            ["Unknown", "Unknown", "In-store", 38, 101, 372.0],
+            ["Unknown", "Unknown", "Takeaway", 47, 174, 600.0],
+            ["Unknown", "Unknown", "Unknown", 60, 179, 625.0],
+          ],
+          month: [
+            ["2023-01", "Cash", "In-store", 60, 188, 595.5],
+            ["2023-01", "Cash", "Takeaway", 57, 183, 514.0],
+            ["2023-01", "Cash", "Unknown", 56, 183, 595.0],
+            ["2023-01", "Credit Card", "In-store", 73, 218, 675.0],
+            ["2023-01", "Credit Card", "Takeaway", 61, 184, 538.5],
+            ["2023-01", "Credit Card", "Unknown", 68, 193, 575.0],
+            ["2023-01", "Digital Wallet", "In-store", 56, 164, 472.5],
+            ["2023-01", "Digital Wallet", "Takeaway", 60, 180, 552.0],
+            ["2023-01", "Digital Wallet", "Unknown", 62, 184, 546.0],
+            ["2023-01", "Unknown", "In-store", 70, 196, 515.0],
+            ["2023-01", "Unknown", "Takeaway", 79, 239, 680.0],
+            ["2023-01", "Unknown", "Unknown", 113, 336, 995.5],
+            ["2023-02", "Cash", "In-store", 50, 132, 391.5],
+            ["2023-02", "Cash", "Takeaway", 52, 183, 515.5],
+            ["2023-02", "Cash", "Unknown", 60, 189, 552.0],
+            ["2023-02", "Credit Card", "In-store", 53, 179, 511.0],
+            ["2023-02", "Credit Card", "Takeaway", 53, 159, 478.5],
+            ["2023-02", "Credit Card", "Unknown", 61, 183, 565.5],
+            ["2023-02", "Digital Wallet", "In-store", 56, 188, 575.0],
+            ["2023-02", "Digital Wallet", "Takeaway", 44, 138, 393.5],
+            ["2023-02", "Digital Wallet", "Unknown", 58, 170, 588.0],
+            ["2023-02", "Unknown", "In-store", 67, 215, 602.0],
+            ["2023-02", "Unknown", "Takeaway", 68, 210, 588.5],
+            ["2023-02", "Unknown", "Unknown", 104, 307, 883.0],
+            ["2023-03", "Cash", "In-store", 59, 179, 578.0],
+            ["2023-03", "Cash", "Takeaway", 61, 176, 481.0],
+            ["2023-03", "Cash", "Unknown", 71, 222, 676.5],
+            ["2023-03", "Credit Card", "In-store", 46, 138, 415.0],
+            ["2023-03", "Credit Card", "Takeaway", 60, 169, 531.5],
+            ["2023-03", "Credit Card", "Unknown", 87, 273, 804.5],
+            ["2023-03", "Digital Wallet", "In-store", 49, 152, 469.5],
+            ["2023-03", "Digital Wallet", "Takeaway", 61, 162, 416.5],
+            ["2023-03", "Digital Wallet", "Unknown", 75, 209, 607.0],
+            ["2023-03", "Unknown", "In-store", 78, 244, 672.0],
+            ["2023-03", "Unknown", "Takeaway", 76, 239, 713.5],
+            ["2023-03", "Unknown", "Unknown", 103, 307, 851.0],
+            ["2023-04", "Cash", "In-store", 52, 182, 565.5],
+            ["2023-04", "Cash", "Takeaway", 47, 151, 439.5],
+            ["2023-04", "Cash", "Unknown", 58, 168, 506.5],
+            ["2023-04", "Credit Card", "In-store", 46, 143, 473.5],
+            ["2023-04", "Credit Card", "Takeaway", 60, 185, 571.0],
+            ["2023-04", "Credit Card", "Unknown", 56, 169, 519.0],
+            ["2023-04", "Digital Wallet", "In-store", 53, 148, 387.5],
+            ["2023-04", "Digital Wallet", "Takeaway", 59, 177, 561.5],
+            ["2023-04", "Digital Wallet", "Unknown", 80, 251, 733.5],
+            ["2023-04", "Unknown", "In-store", 76, 243, 750.0],
+            ["2023-04", "Unknown", "Takeaway", 78, 236, 728.5],
+            ["2023-04", "Unknown", "Unknown", 106, 320, 943.0],
+            ["2023-05", "Cash", "In-store", 60, 174, 521.5],
+            ["2023-05", "Cash", "Takeaway", 45, 135, 444.0],
+            ["2023-05", "Cash", "Unknown", 71, 194, 557.0],
+            ["2023-05", "Credit Card", "In-store", 46, 138, 397.0],
+            ["2023-05", "Credit Card", "Takeaway", 39, 123, 348.0],
+            ["2023-05", "Credit Card", "Unknown", 74, 217, 686.0],
+            ["2023-05", "Digital Wallet", "In-store", 50, 151, 429.0],
+            ["2023-05", "Digital Wallet", "Takeaway", 54, 163, 408.0],
+            ["2023-05", "Digital Wallet", "Unknown", 67, 218, 668.0],
+            ["2023-05", "Unknown", "In-store", 66, 201, 621.0],
+            ["2023-05", "Unknown", "Takeaway", 95, 293, 878.5],
+            ["2023-05", "Unknown", "Unknown", 106, 325, 999.5],
+            ["2023-06", "Cash", "In-store", 62, 192, 597.5],
+            ["2023-06", "Cash", "Takeaway", 47, 156, 480.0],
+            ["2023-06", "Cash", "Unknown", 78, 223, 671.5],
+            ["2023-06", "Credit Card", "In-store", 53, 170, 552.5],
+            ["2023-06", "Credit Card", "Takeaway", 52, 160, 444.0],
+            ["2023-06", "Credit Card", "Unknown", 75, 224, 686.0],
+            ["2023-06", "Digital Wallet", "In-store", 50, 167, 528.5],
+            ["2023-06", "Digital Wallet", "Takeaway", 58, 174, 446.0],
+            ["2023-06", "Digital Wallet", "Unknown", 79, 221, 673.5],
+            ["2023-06", "Unknown", "In-store", 79, 222, 665.0],
+            ["2023-06", "Unknown", "Takeaway", 87, 278, 805.5],
+            ["2023-06", "Unknown", "Unknown", 97, 274, 803.0],
+            ["2023-07", "Cash", "In-store", 60, 175, 561.0],
+            ["2023-07", "Cash", "Takeaway", 56, 169, 484.0],
+            ["2023-07", "Cash", "Unknown", 66, 174, 501.0],
+            ["2023-07", "Credit Card", "In-store", 48, 138, 373.0],
+            ["2023-07", "Credit Card", "Takeaway", 49, 156, 431.0],
+            ["2023-07", "Credit Card", "Unknown", 74, 223, 726.0],
+            ["2023-07", "Digital Wallet", "In-store", 50, 154, 460.5],
+            ["2023-07", "Digital Wallet", "Takeaway", 62, 171, 494.0],
+            ["2023-07", "Digital Wallet", "Unknown", 77, 225, 682.0],
+            ["2023-07", "Unknown", "In-store", 81, 236, 678.5],
+            ["2023-07", "Unknown", "Takeaway", 72, 235, 690.5],
+            ["2023-07", "Unknown", "Unknown", 94, 281, 796.0],
+            ["2023-08", "Cash", "In-store", 54, 160, 469.5],
+            ["2023-08", "Cash", "Takeaway", 58, 165, 456.5],
+            ["2023-08", "Cash", "Unknown", 83, 256, 742.0],
+            ["2023-08", "Credit Card", "In-store", 53, 164, 530.0],
+            ["2023-08", "Credit Card", "Takeaway", 59, 161, 501.5],
+            ["2023-08", "Credit Card", "Unknown", 92, 269, 843.5],
+            ["2023-08", "Digital Wallet", "In-store", 50, 157, 467.5],
+            ["2023-08", "Digital Wallet", "Takeaway", 59, 177, 513.5],
+            ["2023-08", "Digital Wallet", "Unknown", 59, 171, 466.0],
+            ["2023-08", "Unknown", "In-store", 65, 207, 639.0],
+            ["2023-08", "Unknown", "Takeaway", 74, 217, 617.0],
+            ["2023-08", "Unknown", "Unknown", 96, 306, 866.5],
+            ["2023-09", "Cash", "In-store", 62, 190, 583.5],
+            ["2023-09", "Cash", "Takeaway", 56, 162, 462.5],
+            ["2023-09", "Cash", "Unknown", 70, 236, 720.5],
+            ["2023-09", "Credit Card", "In-store", 51, 133, 361.0],
+            ["2023-09", "Credit Card", "Takeaway", 59, 159, 507.0],
+            ["2023-09", "Credit Card", "Unknown", 72, 234, 728.0],
+            ["2023-09", "Digital Wallet", "In-store", 55, 176, 547.5],
+            ["2023-09", "Digital Wallet", "Takeaway", 67, 215, 569.5],
+            ["2023-09", "Digital Wallet", "Unknown", 60, 192, 521.5],
+            ["2023-09", "Unknown", "In-store", 68, 208, 599.5],
+            ["2023-09", "Unknown", "Takeaway", 60, 172, 488.0],
+            ["2023-09", "Unknown", "Unknown", 106, 281, 782.5],
+            ["2023-10", "Cash", "In-store", 54, 156, 406.0],
+            ["2023-10", "Cash", "Takeaway", 51, 160, 406.0],
+            ["2023-10", "Cash", "Unknown", 83, 265, 843.5],
+            ["2023-10", "Credit Card", "In-store", 56, 164, 430.5],
+            ["2023-10", "Credit Card", "Takeaway", 55, 160, 421.0],
+            ["2023-10", "Credit Card", "Unknown", 69, 214, 636.0],
+            ["2023-10", "Digital Wallet", "In-store", 68, 208, 648.0],
+            ["2023-10", "Digital Wallet", "Takeaway", 61, 173, 529.0],
+            ["2023-10", "Digital Wallet", "Unknown", 73, 241, 676.0],
+            ["2023-10", "Unknown", "In-store", 88, 259, 724.5],
+            ["2023-10", "Unknown", "Takeaway", 71, 212, 629.5],
+            ["2023-10", "Unknown", "Unknown", 108, 327, 964.0],
+            ["2023-11", "Cash", "In-store", 52, 167, 500.0],
+            ["2023-11", "Cash", "Takeaway", 47, 148, 457.0],
+            ["2023-11", "Cash", "Unknown", 73, 220, 663.5],
+            ["2023-11", "Credit Card", "In-store", 58, 166, 449.5],
+            ["2023-11", "Credit Card", "Takeaway", 54, 181, 520.5],
+            ["2023-11", "Credit Card", "Unknown", 71, 199, 557.0],
+            ["2023-11", "Digital Wallet", "In-store", 59, 183, 632.0],
+            ["2023-11", "Digital Wallet", "Takeaway", 66, 200, 595.0],
+            ["2023-11", "Digital Wallet", "Unknown", 73, 218, 581.5],
+            ["2023-11", "Unknown", "In-store", 74, 220, 670.5],
+            ["2023-11", "Unknown", "Takeaway", 69, 199, 593.5],
+            ["2023-11", "Unknown", "Unknown", 88, 241, 747.0],
+            ["2023-12", "Cash", "In-store", 45, 127, 362.5],
+            ["2023-12", "Cash", "Takeaway", 53, 160, 487.5],
+            ["2023-12", "Cash", "Unknown", 85, 242, 742.5],
+            ["2023-12", "Credit Card", "In-store", 62, 197, 547.5],
+            ["2023-12", "Credit Card", "Takeaway", 44, 129, 390.5],
+            ["2023-12", "Credit Card", "Unknown", 77, 240, 770.5],
+            ["2023-12", "Digital Wallet", "In-store", 65, 202, 642.5],
+            ["2023-12", "Digital Wallet", "Takeaway", 63, 191, 574.0],
+            ["2023-12", "Digital Wallet", "Unknown", 53, 171, 487.5],
+            ["2023-12", "Unknown", "In-store", 75, 218, 641.0],
+            ["2023-12", "Unknown", "Takeaway", 65, 207, 610.5],
+            ["2023-12", "Unknown", "Unknown", 104, 337, 920.5],
+          ],
+          qty: [
+            ["1", "Cash", "In-store", 142, 142, 437.0],
+            ["1", "Cash", "Takeaway", 109, 109, 346.0],
+            ["1", "Cash", "Unknown", 176, 176, 518.5],
+            ["1", "Credit Card", "In-store", 129, 129, 366.0],
+            ["1", "Credit Card", "Takeaway", 135, 135, 406.0],
+            ["1", "Credit Card", "Unknown", 179, 179, 530.5],
+            ["1", "Digital Wallet", "In-store", 123, 123, 336.0],
+            ["1", "Digital Wallet", "Takeaway", 150, 150, 437.5],
+            ["1", "Digital Wallet", "Unknown", 149, 149, 425.0],
+            ["1", "Unknown", "In-store", 193, 193, 593.0],
+            ["1", "Unknown", "Takeaway", 179, 179, 522.0],
+            ["1", "Unknown", "Unknown", 262, 262, 775.5],
+            ["2", "Cash", "In-store", 140, 280, 889.0],
+            ["2", "Cash", "Takeaway", 138, 276, 746.0],
+            ["2", "Cash", "Unknown", 187, 374, 1068.0],
+            ["2", "Credit Card", "In-store", 134, 268, 799.0],
+            ["2", "Credit Card", "Takeaway", 146, 292, 815.0],
+            ["2", "Credit Card", "Unknown", 184, 368, 1175.0],
+            ["2", "Digital Wallet", "In-store", 134, 268, 795.0],
+            ["2", "Digital Wallet", "Takeaway", 164, 328, 943.0],
+            ["2", "Digital Wallet", "Unknown", 189, 378, 1083.0],
+            ["2", "Unknown", "In-store", 174, 348, 1001.0],
+            ["2", "Unknown", "Takeaway", 179, 358, 1034.0],
+            ["2", "Unknown", "Unknown", 286, 572, 1605.0],
+            ["3", "Cash", "In-store", 140, 420, 1221.0],
+            ["3", "Cash", "Takeaway", 134, 402, 1140.0],
+            ["3", "Cash", "Unknown", 166, 498, 1482.0],
+            ["3", "Credit Card", "In-store", 145, 435, 1315.5],
+            ["3", "Credit Card", "Takeaway", 108, 324, 975.0],
+            ["3", "Credit Card", "Unknown", 185, 555, 1668.0],
+            ["3", "Digital Wallet", "In-store", 137, 411, 1245.0],
+            ["3", "Digital Wallet", "Takeaway", 139, 417, 1195.5],
+            ["3", "Digital Wallet", "Unknown", 172, 516, 1521.0],
+            ["3", "Unknown", "In-store", 184, 552, 1651.5],
+            ["3", "Unknown", "Takeaway", 197, 591, 1810.5],
+            ["3", "Unknown", "Unknown", 239, 717, 2067.0],
+            ["4", "Cash", "In-store", 131, 524, 1606.0],
+            ["4", "Cash", "Takeaway", 148, 592, 1684.0],
+            ["4", "Cash", "Unknown", 167, 668, 2130.0],
+            ["4", "Credit Card", "In-store", 136, 544, 1516.0],
+            ["4", "Credit Card", "Takeaway", 146, 584, 1720.0],
+            ["4", "Credit Card", "Unknown", 172, 688, 2140.0],
+            ["4", "Digital Wallet", "In-store", 142, 568, 1750.0],
+            ["4", "Digital Wallet", "Takeaway", 131, 524, 1428.0],
+            ["4", "Digital Wallet", "Unknown", 169, 676, 2016.0],
+            ["4", "Unknown", "In-store", 184, 736, 2064.0],
+            ["4", "Unknown", "Takeaway", 182, 728, 2050.0],
+            ["4", "Unknown", "Unknown", 231, 924, 2670.0],
+            ["5", "Cash", "In-store", 147, 735, 2235.0],
+            ["5", "Cash", "Takeaway", 134, 670, 1985.0],
+            ["5", "Cash", "Unknown", 195, 975, 2915.0],
+            ["5", "Credit Card", "In-store", 135, 675, 2012.5],
+            ["5", "Credit Card", "Takeaway", 134, 670, 2005.0],
+            ["5", "Credit Card", "Unknown", 200, 1000, 3002.5],
+            ["5", "Digital Wallet", "In-store", 156, 780, 2417.5],
+            ["5", "Digital Wallet", "Takeaway", 157, 785, 2287.5],
+            ["5", "Digital Wallet", "Unknown", 172, 860, 2525.0],
+            ["5", "Unknown", "In-store", 200, 1000, 2890.0],
+            ["5", "Unknown", "Takeaway", 206, 1030, 3022.5],
+            ["5", "Unknown", "Unknown", 272, 1360, 4032.5],
+          ],
+        },
+        S = { l: "All", p: "All" },
+        $ = (i) => document.getElementById(i),
+        P = ["#c98a4b", "#8b5a3c", "#e3c9a3", "#5a3825", "#b07d62", "#d9a066"],
+        fm = (n) => "$" + Math.round(n).toLocaleString("en-US"),
+        MO = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+      function agg(rows, ki, useP) {
+        const m = {};
+        rows.forEach((r) => {
+          if (S.l != "All" && r[2] != S.l) return;
+          if (useP && S.p != "All" && r[1] != S.p) return;
+          const a = m[r[ki]] || (m[r[ki]] = [0, 0, 0]);
+          a[0] += r[3];
+          a[1] += r[4];
+          a[2] += r[5];
+        });
+        return m;
+      }
+      function pills(el, k, o) {
+        el.innerHTML = o
+          .map(
+            (x) =>
+              `<button class="pill${S[k] == x ? " on" : ""}" data-v="${x}">${x}</button>`,
+          )
+          .join("");
+        el.onclick = (e) => {
+          const v = e.target.dataset.v;
+          if (v) {
+            S[k] = v;
+            render();
+          }
+        };
+      }
+      function render() {
+        pills($("sl"), "l", ["All", "In-store", "Takeaway", "Unknown"]);
+        pills($("sp"), "p", [
+          "All",
+          "Credit Card",
+          "Digital Wallet",
+          "Cash",
+          "Unknown",
+        ]);
+        const it = agg(D.item, 0, 1),
+          E = Object.entries(it).sort((a, b) => b[1][2] - a[1][2]),
+          T = E.reduce(
+            (s, e) => [s[0] + e[1][0], s[1] + e[1][1], s[2] + e[1][2]],
+            [0, 0, 0],
+          );
+        $("k1").textContent = fm(T[2]);
+        $("k2").textContent = T[0].toLocaleString("en-US");
+        $("k3").textContent = "$" + (T[0] ? T[2] / T[0] : 0).toFixed(2);
+        $("k4").textContent = T[1].toLocaleString("en-US");
+        const mx = Math.max(...E.map((e) => e[1][2]), 1);
+        $("items").innerHTML = E.map(
+          ([k, v]) =>
+            `<div class="row" title="${k}: ${v[0]} orders, ${v[1]} units"><span>${k}</span><div class="trk"><div class="bar" style="width:${(v[2] / mx) * 100}%"></div></div><span>${fm(v[2])} · ${(T[2] ? (v[2] / T[2]) * 100 : 0).toFixed(1)}%</span></div>`,
+        ).join("");
+        const pm = agg(D.item, 1, 0),
+          PE = Object.entries(pm).sort((a, b) => b[1][2] - a[1][2]),
+          PT = PE.reduce((s, e) => s + e[1][2], 0),
+          C = 2 * Math.PI * 42;
+        let cum = 0;
+        const segs = PE.map(([k, v], i) => {
+          const L = PT ? (v[2] / PT) * C : 0,
+            o = S.p == "All" || S.p == k ? 1 : 0.3,
+            s = `<circle r="42" cx="60" cy="60" fill="none" stroke="${P[i % 6]}" stroke-width="18" stroke-dasharray="${L} ${C - L}" stroke-dashoffset="${-cum}" opacity="${o}" transform="rotate(-90 60 60)"><title>${k}: ${fm(v[2])}</title></circle>`;
+          cum += L;
+          return s;
+        }).join("");
+        $("don").innerHTML =
+          `<svg viewBox="0 0 120 120" width="170">${segs}<text x="60" y="64" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">${fm(PT)}</text></svg><div class="lg">${PE.map(([k, v], i) => `<span><i style="background:${P[i % 6]}"></i>${k}: ${(PT ? (v[2] / PT) * 100 : 0).toFixed(1)}%</span>`).join("")}</div>`;
+        const mo = agg(D.month, 0, 1),
+          ks = Object.keys(mo).sort(),
+          vs = ks.map((k) => mo[k][2]),
+          W = 600,
+          H = 210,
+          pl = 46,
+          pb = 26,
+          pt = 12,
+          pr = 12,
+          M = Math.max(...vs, 1) * 1.15,
+          x = (i) => pl + (i * (W - pl - pr)) / 11,
+          y = (v) => pt + (H - pt - pb) * (1 - v / M),
+          pts = ks.map((k, i) => [x(+k.slice(5) - 1), y(mo[k][2])]),
+          ln = pts.map((p, i) => (i ? "L" : "M") + p[0] + " " + p[1]).join(" ");
+        $("mon").innerHTML =
+          `<svg viewBox="0 0 ${W} ${H}"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c98a4b" stop-opacity=".55"/><stop offset="1" stop-color="#c98a4b" stop-opacity="0"/></linearGradient></defs>${[0, 0.5, 1].map((f) => `<line x1="${pl}" x2="${W - pr}" y1="${y((M * f) / 1.15)}" y2="${y((M * f) / 1.15)}" stroke="currentColor" opacity=".15"/><text x="${pl - 6}" y="${y((M * f) / 1.15) + 4}" text-anchor="end" font-size="11" fill="currentColor" opacity=".7">${fm((M / 1.15) * f)}</text>`).join("")}${MO.map((m, i) => `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="currentColor" opacity=".7">${m}</text>`).join("")}${pts.length ? `<path d="${ln} L${pts[pts.length - 1][0]} ${y(0)} L${pts[0][0]} ${y(0)}Z" fill="url(#g)"/><path d="${ln}" fill="none" stroke="#c98a4b" stroke-width="3" stroke-linejoin="round"/>` : ""}${pts.map((p, i) => `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="#f6e8d3" stroke="#8a4f24" stroke-width="2"><title>${ks[i]}: ${fm(vs[i])}</title></circle>`).join("")}</svg>`;
+        $("und").textContent =
+          "Revenue with no date (not in chart): " +
+          fm(T[2] - vs.reduce((a, b) => a + b, 0));
+        const q = agg(D.qty, 0, 1),
+          qm = Math.max(...Object.values(q).map((v) => v[2]), 1);
+        $("qty").innerHTML =
+          '<div class="cols">' +
+          [1, 2, 3, 4, 5]
+            .map((n) => {
+              const v = (q[n] || [0, 0, 0])[2];
+              return `<div class="col" title="${n} units: ${fm(v)}">${fm(v)}<i style="height:${(v / qm) * 130}px"></i>${n}</div>`;
+            })
+            .join("") +
+          "</div>";
+      }
+      render();
+    </script>
+  </body>
+</html>
